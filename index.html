@@ -1,219 +1,420 @@
 <!DOCTYPE html>
-<style type="text/css">
-    
-    /*styling the lines on the graph*/
-    .line {
-        fill: none;
-        stroke: #ffab00;
-        stroke-width: 2.5;
-    }
-
-    .overlay {
-        fill: none;
-        pointer-events: all;
-    }
-
-    .dot {
-        fill: #ffab00;
-        stroke: #fff;
-    }
-
-    .focus circle {
-        fill: none;
-        stroke: steelblue;
-    }
-
-/*    styling for the legend text for UFO shapes*/
-    .legend {
-        font-size: 16px;
-        font-family: impact;
-        text-align: center;
-    }
-/*    styling for the footer text at bottom of page*/
-    .footer {
-        position: fixed;
-        text-align: center;
-        bottom: 5px;
-        width: 100%;
-        font-family: arial;
-    }
-
-    body {
-        background-color: lightgray
-    }
-
-</style>
-
-<!-- this is a comment -->
-<meta charset="utf-8">
-
 <html>
-
-<head>
-    <title>
-        UFO Shapes
-    </title>
-
-</head>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="d3.layout.cloud.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
 <body>
-    <!--    initial setup of web page-->
-    <h1 style="text-align: center; font-family: Impact; font-size: 30px">Most Viewed UFO Shapes in the US</h1>
-    <p style="text-align: center; font-family: arial">CS4331: Visualization and Visual Analytics - Spring 2019</p>
 
-    <!--    importing all the required d3 files-->
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="http://d3js.org/d3.v4.min.js"></script>
-    <script src="https://d3js.org/d3-array.v1.min.js"></script>
-    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-    <script src="https://d3js.org/d3-color.v1.min.js"></script>
-    <script src="https://d3js.org/d3-format.v1.min.js"></script>
-    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
-    <script src="https://d3js.org/d3-time.v1.min.js"></script>
-    <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
-    <script src="https://d3js.org/d3-scale.v2.min.js"></script>
-    <script src="https://d3js.org/d3-path.v1.min.js"></script>
-    <script src="http://d3js.org/d3.v4.0.0-alpha.44.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <p>Select a book from the list.</p>
 
-    <script>
-        //main script to setup the line chart
-        var margin = {
-                top: 30,
-                right: 20,
-                bottom: 70,
-                left: 50
-            },
-            width = 800,
-            height = 600;
-        //parse date format from csv to abreviated month, year
-        var parseDate = d3.time.format("%b-%y").parse;
+    <select id="mySelect" onchange="myFunction()">
+        <option value="select" selected>Select a book...</option>
+        <option value="book1">Book 1</option>
+        <option value="book2">Book 2</option>
+        <option value="book3">Book 3</option>
+        <option value="book4">Book 4</option>
+        <option value="book5">Book 5</option>
 
-        //set ranges for x,y
-        var x = d3.time.scale().range([0, width]);
-        var y = d3.scale.linear().range([height, 0]);
+    </select>
 
-        //min/max for line graph axes
-        var yScale = d3.scaleLinear()
-            .domain([0, 120])
-            .range([height, 0]);
-        var xScale = d3.scaleLinear()
-            .domain([2013, 2017])
-            .range([0, width]);
+    <p id="demo"></p>
 
-        // Define the axes
-        var xAxis = d3.svg.axis().scale(x)
-            .orient("bottom").ticks(12);
-        var yAxis = d3.svg.axis().scale(y)
-            .orient("left").ticks(12);
+    <div id="myDiv">
+        <script>
+            var width = 1000,
+                height = 1000;
+            var book1 = [
+                {"text": "Eddard Stark", "size":999},
+                {"text": "Jon Snow", "size":849},
+                {"text": "Tyrion Lannister", "size":676},
+                {"text": "Brandon Stark", "size":611},
+                {"text": "Catelyn Stark", "size":550},
+                {"text": "Daenerys Targaryen", "size":545},
+                {"text": "Arya Stark", "size":469},
+                {"text": "Sansa Stark", "size":430},
+                {"text": "Robb Stark", "size":411},
+                {"text": "Robert Baratheon", "size":408},
+                {"text": "Joffrey Baratheon", "size":230},
+                {"text": "Khal Drogo", "size":219},
+                {"text": "Petyr Baelish", "size":210},
+                {"text": "Jaime Lannister", "size":191},
+                {"text": "Varys", "size":180},
+                {"text": "Jorah Mormont", "size":167},
+                {"text": "Tywin Lannister", "size":152},
+                {"text": "Gregor Clegane", "size":133},
+                {"text": "Samwell Tarly", "size":124},
+                {"text": "Bronn", "size":122},
+            ];
 
-        // Define the lines for chart
-        var val = d3.svg.line()
-            .x(function(d) {
-                return x(d.Date);
-            })
-            .y(function(d) {
-                return y(d.Value);
+            var book2 = [
+                {"text": "Tyrion Lannister", "size":757},
+                {"text": "Jon Snow", "size":487},
+                {"text": "Brandon Stark", "size":466},
+                {"text": "Arya Stark", "size":457},
+                {"text": "Theon Greyjoy", "size":457},
+                {"text": "Stannis Baratheon", "size":388},
+                {"text": "Catelyn Stark", "size":331},
+                {"text": "Sansa Stark", "size":312},
+                {"text": "Joffrey Baratheon", "size":285},
+                {"text": "Robb Stark", "size":239},
+                {"text": "Cersei Lannister", "size":229},
+                {"text": "Daenerys Targaryen", "size":229},
+                {"text": "Varys", "size":224},
+                {"text": "Davos Seaworth", "size":222},
+                {"text": "Robert Baratheon", "size":190},
+                {"text": "Jaime Lannister", "size":146},
+                {"text": "Eddard Stark", "size":144},
+                {"text": "Hodor", "size":141},
+                {"text": "Gendry", "size":128},
+                {"text": "Petyr Baelish", "size":124},
+            ];
+
+            var book3 = [
+                {"text": "Jon Snow", "size":873},
+                {"text": "Tyrion Lannister", "size":738},
+                {"text": "Jaime Lannister", "size":658},
+                {"text": "Sansa Stark", "size":518},
+                {"text": "Arya Stark", "size":507},
+                {"text": "Samwell Tarly", "size":431},
+                {"text": "Daenerys Targaryen", "size":406},
+                {"text": "Robb Stark", "size":380},
+                {"text": "Catelyn Stark", "size":349},
+                {"text": "Brandon Stark", "size":320},
+                {"text": "Davos Seaworth", "size":300},
+                {"text": "Joffrey Baratheon", "size":283},
+                {"text": "Sandor Clegane", "size":241},
+                {"text": "Cersei Lannister", "size":239},
+                {"text": "Stannis Baratheon", "size":234},
+                {"text": "Tywin Lannister", "size":216},
+                {"text": "Robert Baratheon", "size":207},
+                {"text": "Brienne of Tarth", "size":192},
+                {"text": "Gregor Clegane", "size":183},
+                {"text": "Petyr Baelish", "size":179},
+            ];
+
+            var book4 = [
+                {"text": "Jaime Lannister", "size":653},
+                {"text": "Cersei Lannister", "size":522},
+                {"text": "Brienne of Tarth", "size":432},
+                {"text": "Samwell Tarly", "size":393},
+                {"text": "Robert Baratheon", "size":229},
+                {"text": "Tommen Baratheon", "size":222},
+                {"text": "Margaery Tyrell", "size":180},
+                {"text": "Petyr Baelish", "size":172},
+                {"text": "Sansa Stark", "size":149},
+                {"text": "Tywin Lannister", "size":146},
+                {"text": "Jon Snow", "size":140},
+                {"text": "Tyrion Lannister", "size":139},
+                {"text": "Arya Stark", "size":137},
+                {"text": "Catelyn Stark", "size":128},
+                {"text": "Maester Aemon", "size":114},
+                {"text": "Gilly", "size":110},
+                {"text": "Stannis Baratheon", "size":110},
+                {"text": "Gregor Clegane", "size":106},
+                {"text": "Podrick Payne", "size":103},
+                {"text": "Loras Tyrell", "size":102},
+            ];
+
+            var book5 = [
+                {"text": "Jon Snow", "size":911},
+                {"text": "Tyrion Lannister", "size":701},
+                {"text": "Daenerys Targaryen", "size":671},
+                {"text": "Theon Greyjoy", "size":468},
+                {"text": "Stannis Baratheon", "size":367},
+                {"text": "Ramsay Bolton", "size":245},
+                {"text": "Brandon Stark", "size":229},
+                {"text": "Davos Seaworth", "size":184},
+                {"text": "Tormund Giantsbane", "size":152},
+                {"text": "Cersei Lannister", "size":142},
+                {"text": "Melisandre", "size":140},
+                {"text": "Jaime Lannister", "size":138},
+                {"text": "Daario Naharis", "size":135},
+                {"text": "Hodor", "size":122},
+                {"text": "Robert Baratheon", "size":103},
+                {"text": "Arya Stark", "size":102},
+                {"text": "Jorah Mormont", "size":90},
+                {"text": "Eddard Stark", "size":87},
+                {"text": "Roose Bolton", "size":87},
+                {"text": "Tywin Lannister", "size":77},
+            ];
+
+            $(function() {
+                for (var x = 0; x < book1.length; x = x + 1) {
+                    //console.log(book1[x].size);
+                    book1[x].size = book1[x].size / 15;
+                    //console.log(book1[x].size);
+                }
+                for (var x = 0; x < book2.length; x = x + 1) {
+                    //console.log(book2[x].size);
+                    book2[x].size = book2[x].size / 15;
+                    //console.log(book2[x].size);
+                }
+                for (var x = 0; x < book3.length; x = x + 1) {
+                    //console.log(book2[x].size);
+                    book3[x].size = book3[x].size / 15;
+                    //console.log(book2[x].size);
+                }
+                for (var x = 0; x < book4.length; x = x + 1) {
+                    //console.log(book2[x].size);
+                    book4[x].size = book4[x].size / 15;
+                    //console.log(book2[x].size);
+                }
+                for (var x = 0; x < book5.length; x = x + 1) {
+                    //console.log(book2[x].size);
+                    book5[x].size = book5[x].size / 15;
+                    //console.log(book2[x].size);
+                }
             });
 
-        // Add svg element for linechart
-        var svg = d3.select("body")
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
+            function myFunction() {
+                var x = document.getElementById("mySelect").value;
+                var name = document.getElementById("mySelect").name;
+                document.getElementById("demo").innerHTML = "Book selected: " + x.slice(0, 4) + " " + x[4];
 
-        //get data from csv file
-        d3.csv("UFOSightingsCompiled.csv", function(error, data) {
-            if (error) throw error;
-            data.forEach(function(d) {
-                d.Date = parseDate(d.Date);
-                d.Value = +d.Value;
-            });
+                d3.select("svg").remove();
 
-            //dynamically set the line color using category 10
-            var color = d3.scale.category10();
 
-            //set x range
-            x.domain(d3.extent(data, function(d) {
-                return d.Date;
-            }));
-            //set y range
-            y.domain([0, d3.max(data, function(d) {
-                return d.Value;
-            })]);
+                if (x == 'book1') {
+                    x = book1;
 
-            //nest the entries by Shape
-            var dataNest = d3.nest()
-                .key(function(d) {
-                    console.log(d3.max(d.Value));
-                    return d.Shape;
-                })
-                .entries(data);
 
-            //spacing for legend text under chart
-            legendSpace = width / dataNest.length;
 
-            //sorts the data by month-year
-            dataNest.forEach(function(d, i) {
-                d.values.sort(function(x, y) {
-                    return x.Date - y.Date;
-                });
-            });
+                    var fill = d3.scale.category20();
 
-            //Loop through each symbol / key
-            dataNest.forEach(function(d, i) {
+                    d3.layout.cloud()
+                        .size([width, height])
+                        .words(x)
+                        .padding(1)
+                        .rotate(0)
+                        /*
+                                    .text(function(d){return d.word;})
+                        */
+                        .fontSize(function(d) {
+                            return d.size;
+                        })
+                        .on("end", draw)
+                        .start();
 
-                svg.append("path")
-                    .attr("class", "line")
-                    .style("stroke", function() { // Add the colours dynamically
-                        return d.color = color(d.key);
-                    })
-                    .attr("id", 'tag' + d.key.replace(/\s+/g, '')) // assign ID
-                    .attr("d", val(d.values));
+                    function draw(words) {
+                        d3.select("body").append("svg")
+                            .attr("width", width)
+                            .attr("height", height)
+                            .attr("class", "wordcloud")
+                            .append("g")
+                            // without the transform, words words would get cutoff to the left and top, they would
+                            // appear outside of the SVG area
+                            .attr("transform", "translate(320,300)")
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", function(d) {
+                                return d.size + "px";
+                            })
+                            .style("fill", function(d, i) {
+                                return fill(i);
+                            })
+                            .attr("transform", function(d) {
+                                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                            })
+                            .text(function(d) {
+                                return d.text;
+                            });
+                    }
 
-                // Add the Legend text that is clickable to toggle shapes
-                svg.append("text")
-                    .attr("x", (legendSpace / 2) + i * legendSpace) // space legend
-                    .attr("y", height + (margin.bottom / 2) + 30)
-                    .attr("class", "legend") // style the legend
-                    .style("fill", function() { // Add the colours dynamically
-                        return d.color = color(d.key);
-                    })
-                    .on("click", function() {
-                        // Determine if current line is visible 
-                        var active = d.active ? false : true,
-                            newOpacity = active ? 0 : 1;
-                        // Hide or show the elements based on the ID
-                        d3.select("#tag" + d.key.replace(/\s+/g, ''))
-                            .transition().duration(100)
-                            .style("opacity", newOpacity);
-                        // Update whether or not the elements are active
-                        d.active = active;
-                    })
-                    .text(d.key);
+                } else if (x == 'book2') {
+                    x = book2;
 
-            });
 
-            //add x axis to chart
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(d3.axisBottom(xScale));
+                    var fill = d3.scale.category20();
 
-            //add y axis to chart
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(d3.axisLeft(yScale));
+                    d3.layout.cloud()
+                        .size([width, height])
+                        .words(x)
+                        .padding(1)
+                        .rotate(0)
+                        /*
+                                    .text(function(d){return d.word;})
+                        */
+                        .fontSize(function(d) {
+                            return d.size;
+                        })
+                        .on("end", draw)
+                        .start();
 
-        });
-    </script>
+                    function draw(words) {
+                        d3.select("body").append("svg")
+                            .attr("width", width)
+                            .attr("height", height)
+                            .attr("class", "wordcloud")
+                            .append("g")
+                            // without the transform, words words would get cutoff to the left and top, they would
+                            // appear outside of the SVG area
+                            .attr("transform", "translate(320,300)")
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", function(d) {
+                                return d.size + "px";
+                            })
+                            .style("fill", function(d, i) {
+                                return fill(i);
+                            })
+                            .attr("transform", function(d) {
+                                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                            })
+                            .text(function(d) {
+                                return d.text;
+                            });
+                    }
 
-    <!--    adds the footer text to the page-->
-    <div class="footer">Brandon Stehling - (2019)</div>
+                } else if (x == 'book3') {
+                    x = book3;
 
+
+                    var fill = d3.scale.category20();
+
+                    d3.layout.cloud()
+                        .size([width, height])
+                        .words(x)
+                        .padding(1)
+                        .rotate(0)
+                        /*
+                                    .text(function(d){return d.word;})
+                        */
+                        .fontSize(function(d) {
+                            return d.size;
+                        })
+                        .on("end", draw)
+                        .start();
+
+                    function draw(words) {
+                        d3.select("body").append("svg")
+                            .attr("width", width)
+                            .attr("height", height)
+                            .attr("class", "wordcloud")
+                            .append("g")
+                            // without the transform, words words would get cutoff to the left and top, they would
+                            // appear outside of the SVG area
+                            .attr("transform", "translate(320,300)")
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", function(d) {
+                                return d.size + "px";
+                            })
+                            .style("fill", function(d, i) {
+                                return fill(i);
+                            })
+                            .attr("transform", function(d) {
+                                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                            })
+                            .text(function(d) {
+                                return d.text;
+                            });
+                    }
+
+                } else if (x == 'book4') {
+                    x = book4;
+
+
+                    var fill = d3.scale.category20();
+
+                    d3.layout.cloud()
+                        .size([width, height])
+                        .words(x)
+                        .padding(1)
+                        .rotate(0)
+                        /*
+                                    .text(function(d){return d.word;})
+                        */
+                        .fontSize(function(d) {
+                            return d.size;
+                        })
+                        .on("end", draw)
+                        .start();
+
+                    function draw(words) {
+                        d3.select("body").append("svg")
+                            .attr("width", width)
+                            .attr("height", height)
+                            .attr("class", "wordcloud")
+                            .append("g")
+                            // without the transform, words words would get cutoff to the left and top, they would
+                            // appear outside of the SVG area
+                            .attr("transform", "translate(320,300)")
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", function(d) {
+                                return d.size + "px";
+                            })
+                            .style("fill", function(d, i) {
+                                return fill(i);
+                            })
+                            .attr("transform", function(d) {
+                                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                            })
+                            .text(function(d) {
+                                return d.text;
+                            });
+                    }
+
+                } else if (x == 'book5') {
+                    x = book5;
+
+
+                    var fill = d3.scale.category20();
+
+                    d3.layout.cloud()
+                        .size([width, height])
+                        .words(x)
+                        .padding(1)
+                        .rotate(0)
+                        /*
+                                    .text(function(d){return d.word;})
+                        */
+                        .fontSize(function(d) {
+                            return d.size;
+                        })
+                        .on("end", draw)
+                        .start();
+
+                    function draw(words) {
+                        d3.select("body").append("svg")
+                            .attr("width", width)
+                            .attr("height", height)
+                            .attr("class", "wordcloud")
+                            .append("g")
+                            // without the transform, words words would get cutoff to the left and top, they would
+                            // appear outside of the SVG area
+                            .attr("transform", "translate(320,300)")
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", function(d) {
+                                return d.size + "px";
+                            })
+                            .style("fill", function(d, i) {
+                                return fill(i);
+                            })
+                            .attr("transform", function(d) {
+                                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                            })
+                            .text(function(d) {
+                                return d.text;
+                            });
+                    }
+
+                }
+
+
+
+
+
+            }
+        </script>
+    </div>
 </body>
-
 </html>
+
